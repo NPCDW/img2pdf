@@ -1,89 +1,95 @@
 <template>
-  <div>
+  <div style="margin: 40px;">
     <a-upload
         action="#"
         list-type="picture-card"
+        accept="image/*"
         :file-list="fileList"
+        :before-upload="beforeUpload"
         @preview="handlePreview"
         @change="handleChange"
+        :multiple="true"
     >
-      <div v-if="fileList.length < 8">
-        <a-icon type="plus" />
-        <div class="ant-upload-text">
-          Upload
-        </div>
+      <a-icon type="plus"/>
+      <div class="ant-upload-text">
+        Upload
       </div>
     </a-upload>
-    <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel">
-      <img alt="example" style="width: 100%" :src="previewImage" />
+    <a-modal v-model="previewVisible" :footer="null" :closable="false">
+      <img alt="example" style="width: 100%" :src="previewImage"/>
     </a-modal>
+    <div style="margin-top: 40px">
+      <div>
+        <span style="margin-right: 10px">纸张大小</span>
+        <a-radio-group v-model="paperSizeRadio">
+          <a-radio :value="0">
+            A4
+          </a-radio>
+          <a-radio :value="1">
+            B3
+          </a-radio>
+          <a-radio :value="2">
+            原图尺寸
+          </a-radio>
+          <a-radio :value="3">
+            自定义规格
+          </a-radio>
+          <a-radio :value="4">
+            自定义尺寸
+          </a-radio>
+        </a-radio-group>
+      </div>
+      <div v-if="paperSizeRadio === 3" style="margin-top: 20px">
+        <a-input v-model="pageSize" style="width: 200px" placeholder="如：A4、B3之类" />
+      </div>
+      <div v-if="paperSizeRadio === 4" style="margin-top: 20px">
+        <a-input v-model="pageWidth" style="width: 200px" placeholder="如：210" />
+        <span> × </span>
+        <a-input v-model="pageHeight" style="width: 200px" placeholder="如：297" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 // import { jsPDF } from "jspdf";
 
-function getBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-}
 export default {
   name: "ImgToPdf",
   data() {
     return {
       previewVisible: false,
       previewImage: '',
-      fileList: [
-        {
-          uid: '-1',
-          name: 'image.png',
-          status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-        },
-        {
-          uid: '-2',
-          name: 'image.png',
-          status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-        },
-        {
-          uid: '-3',
-          name: 'image.png',
-          status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-        },
-        {
-          uid: '-4',
-          name: 'image.png',
-          status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-        },
-        {
-          uid: '-5',
-          name: 'image.png',
-          status: 'error',
-        },
-      ],
+      fileList: [],
+      paperSizeRadio: 0,
+      pageSize: null,
+      pageWidth: null,
+      pageHeight: null,
     };
   },
   methods: {
-    handleCancel() {
-      this.previewVisible = false;
-    },
     async handlePreview(file) {
       if (!file.url && !file.preview) {
-        file.preview = await getBase64(file.originFileObj);
+        file.preview = await this.getBase64(file.originFileObj);
       }
       this.previewImage = file.url || file.preview;
       this.previewVisible = true;
     },
-    handleChange({ fileList }) {
+    beforeUpload(file) {
+      this.fileList = [...this.fileList, file];
+      return false;
+    },
+    handleChange({fileList}) {
       this.fileList = fileList;
     },
+    getBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
   },
 }
 </script>
