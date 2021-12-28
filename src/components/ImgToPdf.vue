@@ -34,7 +34,7 @@
       </div>
       <div style="margin-top: 20px">
         <span style="margin-right: 10px">纸张大小：</span>
-        <a-radio-group v-model="pageSizeRadio" @change="paperSizeChange">
+        <a-radio-group v-model="pageSizeRadio" @change="pageSizeChange">
           <a-radio :value="0">a4</a-radio>
           <a-radio :value="1">b3</a-radio>
           <a-radio :value="2">原图尺寸</a-radio>
@@ -66,7 +66,7 @@
       <div style="margin-top: 20px">
         <div>
           <span style="margin-right: 10px">纸张方向：</span>
-          <a-radio-group v-model="pageDirection">
+          <a-radio-group v-model="pageDirection" :disabled="pageDirectionDisabled">
             <a-radio value="portrait">纵向</a-radio>
             <a-radio value="landscape">横向</a-radio>
           </a-radio-group>
@@ -115,6 +115,7 @@ export default {
       fileList: [],
       loading: false,
       unitDisabled: false,
+      pageDirectionDisabled: false,
       pageSizeRadio: 0,
       pageSize: null,
       pageWidth: null,
@@ -228,13 +229,15 @@ export default {
     handleChange({fileList}) {
       this.fileList = fileList;
     },
-    paperSizeChange() {
+    pageSizeChange() {
       if (this.pageSizeRadio === 2) {
         this.unit = 'px'
         this.unitDisabled = true
+        this.pageDirectionDisabled = true
       } else {
         this.unit = 'mm'
         this.unitDisabled = false
+        this.pageDirectionDisabled = false
       }
     },
     getBase64(file) {

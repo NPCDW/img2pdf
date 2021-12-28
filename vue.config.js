@@ -5,7 +5,7 @@ const cdn = {
     js: [
         "//unpkg.zhimg.com/vue@2.6.11/dist/vue.min.js",
         "//unpkg.zhimg.com/ant-design-vue@1.7.8/dist/antd.min.js",
-        "//unpkg.zhimg.com/jspdf@2.5.0/dist/jspdf.es.min.js",
+        "//unpkg.zhimg.com/jspdf@2.5.0/dist/jspdf.umd.min.js",
         "//unpkg.zhimg.com/file-saver@2.0.5/dist/FileSaver.min.js",
     ]
 }
