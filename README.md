@@ -4,8 +4,7 @@
 
 |  引用库   | 目的  |
 |  ----  | ----  |
-| [pdfjs](https://github.com/mozilla/pdf.js/releases/tag/v2.11.338)  | PDF转为Canvas |
-| [jszip](https://github.com/Stuk/jszip)  | 将Canvas转的Blob数据，打包进一个zip文件中 |
+| [jsPDF](https://github.com/parallax/jsPDF)  | 图片转pdf |
 | [FileSaver.js](https://github.com/eligrey/FileSaver.js)  | 下载文件 |
-| [element-ui](https://github.com/ElemeFE/element)  |  |
+| [ant-design-vue](https://github.com/vueComponent/ant-design-vue)  |  |
 | [vue](https://github.com/vuejs/vue)  |  |
