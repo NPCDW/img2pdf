@@ -34,7 +34,7 @@
       </div>
       <div style="margin-top: 20px">
         <span style="margin-right: 10px">纸张大小：</span>
-        <a-radio-group v-model="paperSizeRadio" @change="paperSizeChange">
+        <a-radio-group v-model="pageSizeRadio" @change="paperSizeChange">
           <a-radio :value="0">a4</a-radio>
           <a-radio :value="1">b3</a-radio>
           <a-radio :value="2">原图尺寸</a-radio>
@@ -42,7 +42,7 @@
           <a-radio :value="4">自定义尺寸</a-radio>
         </a-radio-group>
       </div>
-      <div v-if="paperSizeRadio === 3" style="margin-top: 20px">
+      <div v-if="pageSizeRadio === 3" style="margin-top: 20px">
         <ul>
           <li>a0 - a10</li>
           <li>b0 - b10</li>
@@ -58,7 +58,7 @@
         </ul>
         <a-input v-model="pageSize" style="width: 400px" placeholder="请输入上面列出来的值，如：a4、b3" />
       </div>
-      <div v-if="paperSizeRadio === 4" style="margin-top: 20px">
+      <div v-if="pageSizeRadio === 4" style="margin-top: 20px">
         <a-input-number v-model="pageWidth" style="width: 200px" placeholder="如：210" />
         <span> × </span>
         <a-input-number v-model="pageHeight" style="width: 200px" placeholder="如：297" />
@@ -66,7 +66,7 @@
       <div style="margin-top: 20px">
         <div>
           <span style="margin-right: 10px">纸张方向：</span>
-          <a-radio-group v-model="paperDirection">
+          <a-radio-group v-model="pageDirection">
             <a-radio value="portrait">纵向</a-radio>
             <a-radio value="landscape">横向</a-radio>
           </a-radio-group>
@@ -115,11 +115,11 @@ export default {
       fileList: [],
       loading: false,
       unitDisabled: false,
-      paperSizeRadio: 0,
+      pageSizeRadio: 0,
       pageSize: null,
       pageWidth: null,
       pageHeight: null,
-      paperDirection: 'portrait',
+      pageDirection: 'portrait',
       rotation: 0,
       x: 0,
       y: 0,
@@ -128,67 +128,87 @@ export default {
     };
   },
   methods: {
-    async convert() {
+    convert() {
       if (this.fileList.length === 0) {
         this.$message.warn('请先上传至少一张图片')
         return;
       }
       this.loading = true
-      let format;
-      if (this.paperSizeRadio === 0) {
-        format = 'a4'
-      } else if (this.paperSizeRadio === 1) {
-        format = 'b3'
-      } else if (this.paperSizeRadio === 2) {
-        this.unit = 'px'
-        let img = new Image();
-        img.src = await this.getImgContent(this.fileList[0]);
-        img.onload = () => {
-          format = [img.width, img.height]
-        };
-      } else if (this.paperSizeRadio === 3) {
-        format = this.pageSize
-      } else if (this.paperSizeRadio === 4) {
-        format = [this.pageWidth, this.pageHeight]
+      let allPromise = []
+      for (let i = 0; i < this.fileList.length; i++) {
+        allPromise.push(this.getFormat(this.fileList[i]))
       }
-      let doc = new jsPDF({
-        orientation: this.paperDirection,
-        unit: this.unit,
-        format,
-        hotfixes: this.unit === 'px' ? ["px_scaling"] : null,
-        encryption: {
-          ownerPassword: this.password ? this.password : null,
-          userPassword: this.password ? this.password : null,
-        }
-      });
-      doc.addImage({
-        imageData: await this.getImgContent(this.fileList[0]),
-        x: this.x,
-        y: this.y,
-        // width,
-        // height,
-        rotation: this.rotation,
-      })
-      for (let i = 1; i < this.fileList.length; i++) {
-        if (this.paperSizeRadio === 2) {
-          let img = new Image();
-          img.src = await this.getImgContent(this.fileList[i]);
-          img.onload = () => {
-            format = [this.width, this.height]
-          };
-        }
-        doc.addPage(format, this.paperDirection);
+      Promise.all(allPromise).then(() => {
+        let file0 = this.fileList[0]
+        let doc = new jsPDF({
+          orientation: file0.pageDirection,
+          unit: this.unit,
+          format: file0.pageSize,
+          hotfixes: this.unit === 'px' ? ["px_scaling"] : null,
+          encryption: {
+            ownerPassword: this.password ? this.password : null,
+            userPassword: this.password ? this.password : null,
+          }
+        });
+        let zoom = Math.max(file0.width/(doc.getPageWidth(1) - (this.x * 2)),file0.height/(doc.getPageHeight(1) - (this.y * 2)))
         doc.addImage({
-          imageData: await this.getImgContent(this.fileList[i]),
+          imageData: file0.preview,
           x: this.x,
           y: this.y,
-          // width,
-          // height,
+          width: file0.width/zoom,
+          height: file0.height/zoom,
           rotation: this.rotation,
         })
-      }
-      doc.save('test.pdf', {returnPromise: true}).finally(() => {
-        this.loading = false
+        for (let i = 1; i < this.fileList.length; i++) {
+          let fileTmp = this.fileList[i]
+          doc.addPage(fileTmp.pageSize, fileTmp.pageDirection);
+          let zoom = Math.max(fileTmp.width/(doc.getPageWidth(i+1) - (this.x * 2)),fileTmp.height/(doc.getPageHeight(i+1) - (this.y * 2)))
+          doc.addImage({
+            imageData: fileTmp.preview,
+            x: this.x,
+            y: this.y,
+            width: fileTmp.width/zoom,
+            height: fileTmp.height/zoom,
+            rotation: this.rotation,
+          })
+        }
+        doc.save('test.pdf', {returnPromise: true}).finally(() => {
+          this.loading = false
+        })
+      }).catch(() => {
+        this.$message.error("导出失败")
+      })
+    },
+    getFormat(file) {
+      return new Promise((resolve, reject) => {
+        file.pageDirection = this.pageDirection
+        this.getImgContent(file).then((result) => {
+          let img = new Image();
+          img.src = result;
+          img.onload = () => {
+            file.width = img.width
+            file.height = img.height
+            if (this.pageSizeRadio === 0) {
+              file.pageSize = 'a4'
+              resolve()
+            } else if (this.pageSizeRadio === 1) {
+              file.pageSize = 'b3'
+              resolve()
+            } else if (this.pageSizeRadio === 2) {
+              file.pageSize = [img.width + (this.x * 2), img.height + (this.y * 2)]
+              file.pageDirection = img.width > img.height ? 'landscape' : 'portrait'
+              resolve()
+            } else if (this.pageSizeRadio === 3) {
+              file.pageSize = this.pageSize
+              resolve()
+            } else if (this.pageSizeRadio === 4) {
+              file.pageSize = [this.pageWidth, this.pageHeight]
+              resolve()
+            } else {
+              reject()
+            }
+          }
+        })
       })
     },
     async handlePreview(file) {
@@ -196,10 +216,10 @@ export default {
       this.previewVisible = true;
     },
     async getImgContent(file) {
-      if (!file.url && !file.preview) {
+      if (!file.preview) {
         file.preview = await this.getBase64(file.originFileObj);
       }
-      return file.url || file.preview
+      return file.preview
     },
     beforeUpload(file) {
       this.fileList = [...this.fileList, file];
@@ -209,7 +229,7 @@ export default {
       this.fileList = fileList;
     },
     paperSizeChange() {
-      if (this.paperSizeRadio === 2) {
+      if (this.pageSizeRadio === 2) {
         this.unit = 'px'
         this.unitDisabled = true
       } else {
