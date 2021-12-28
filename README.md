@@ -1,6 +1,6 @@
-# pdf2img PDF转图片
+# img2pdf PDF转图片
 
-试一下：[https://npcdw.github.io/pdf2img/](https://npcdw.github.io/pdf2img/)
+试一下：[https://npcdw.github.io/img2pdf/](https://npcdw.github.io/img2pdf/)
 
 |  引用库   | 目的  |
 |  ----  | ----  |
