@@ -90,12 +90,6 @@
         </div>
         <div style="margin-top: 20px">
           <div>
-            <span style="margin-right: 10px">旋转角度：</span>
-            <a-input-number v-model="rotation" :min="0" :max="359"/>
-          </div>
-        </div>
-        <div style="margin-top: 20px">
-          <div>
             <span style="margin-right: 10px">访问密码：</span>
             <a-input style="width: 400px" v-model="password"/>
           </div>
@@ -126,7 +120,6 @@ export default {
       pageWidth: null,
       pageHeight: null,
       pageDirection: 'portrait',
-      rotation: 0,
       x: 0,
       y: 0,
       unit: 'mm',
@@ -164,7 +157,6 @@ export default {
           y: this.y,
           width: file0.width / zoom,
           height: file0.height / zoom,
-          rotation: this.rotation,
         })
         for (let i = 1; i < this.fileList.length; i++) {
           let fileTmp = this.fileList[i]
@@ -176,7 +168,6 @@ export default {
             y: this.y,
             width: fileTmp.width / zoom,
             height: fileTmp.height / zoom,
-            rotation: this.rotation,
           })
         }
         this.pdfSrc = doc.output("bloburi")
