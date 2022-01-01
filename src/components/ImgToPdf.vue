@@ -148,11 +148,11 @@ export default {
           encryption: {
             ownerPassword: this.password ? this.password : null,
             userPassword: this.password ? this.password : null,
-          }
+          },
         });
         let zoom = Math.max(file0.width / (doc.getPageWidth(1) - (this.x * 2)), file0.height / (doc.getPageHeight(1) - (this.y * 2)))
         doc.addImage({
-          imageData: file0.preview,
+          imageData: file0.canvas,
           x: this.x,
           y: this.y,
           width: file0.width / zoom,
@@ -163,7 +163,7 @@ export default {
           doc.addPage(fileTmp.pageSize, fileTmp.pageDirection);
           let zoom = Math.max(fileTmp.width / (doc.getPageWidth(i + 1) - (this.x * 2)), fileTmp.height / (doc.getPageHeight(i + 1) - (this.y * 2)))
           doc.addImage({
-            imageData: fileTmp.preview,
+            imageData: fileTmp.canvas,
             x: this.x,
             y: this.y,
             width: fileTmp.width / zoom,
@@ -172,51 +172,71 @@ export default {
         }
         this.pdfSrc = doc.output("bloburi")
         this.loading = false
-      }).catch(() => {
+      }).catch(e => {
+        console.error(e)
         this.$message.error("导出失败")
+        this.loading = false
       })
     },
     getFormat(file) {
       return new Promise((resolve, reject) => {
         file.pageDirection = this.pageDirection
-        this.getImgContent(file).then((result) => {
-          let img = new Image();
-          img.src = result;
-          img.onload = () => {
-            file.width = img.width
-            file.height = img.height
-            if (this.pageSizeRadio === 0) {
-              file.pageSize = 'a4'
-              resolve()
-            } else if (this.pageSizeRadio === 1) {
-              file.pageSize = 'b3'
-              resolve()
-            } else if (this.pageSizeRadio === 2) {
-              file.pageSize = [img.width + (this.x * 2), img.height + (this.y * 2)]
-              file.pageDirection = img.width > img.height ? 'landscape' : 'portrait'
-              resolve()
-            } else if (this.pageSizeRadio === 3) {
-              file.pageSize = this.pageSize
-              resolve()
-            } else if (this.pageSizeRadio === 4) {
-              file.pageSize = [this.pageWidth, this.pageHeight]
-              resolve()
-            } else {
-              reject()
-            }
+        let url = this.getFileUrl(file)
+        let image = new Image();
+        image.src = url;
+        image.onload = () => {
+          let canvas = document.createElement("canvas");
+          canvas.width = image.width;
+          canvas.height = image.height;
+          file.width = image.width
+          file.height = image.height
+
+          let ctx = canvas.getContext("2d");
+          ctx.fillStyle = "white";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(image, 0, 0, image.width, image.height);
+          file.canvas = canvas
+
+          if (this.pageSizeRadio === 0) {
+            file.pageSize = 'a4'
+            resolve()
+          } else if (this.pageSizeRadio === 1) {
+            file.pageSize = 'b3'
+            resolve()
+          } else if (this.pageSizeRadio === 2) {
+            file.pageSize = [image.width + (this.x * 2), image.height + (this.y * 2)]
+            file.pageDirection = image.width > image.height ? 'landscape' : 'portrait'
+            resolve()
+          } else if (this.pageSizeRadio === 3) {
+            file.pageSize = this.pageSize
+            resolve()
+          } else if (this.pageSizeRadio === 4) {
+            file.pageSize = [this.pageWidth, this.pageHeight]
+            resolve()
+          } else {
+            reject()
           }
-        })
+        }
+        image.onerror = error => reject(error);
       })
     },
-    async handlePreview(file) {
-      this.previewImage = file.url || await this.getImgContent(file);
+    handlePreview(file) {
+      this.previewImage = this.getFileUrl(file);
       this.previewVisible = true;
     },
-    async getImgContent(file) {
-      if (!file.preview) {
-        file.preview = await this.getBase64(file.originFileObj);
+    getFileUrl(file) {
+      let url = file.url;
+      if (!file.url) {
+        if (window.createObjectURL !== undefined) {
+          url = window.createObjectURL(file.originFileObj);
+        } else if (window.URL !== undefined) {
+          url = window.URL.createObjectURL(file.originFileObj);
+        } else if (window.webkitURL !== undefined) {
+          url = window.webkitURL.createObjectURL(file.originFileObj);
+        }
       }
-      return file.preview
+      file.url = url
+      return url
     },
     beforeUpload(file) {
       this.fileList = [...this.fileList, file];
@@ -236,14 +256,6 @@ export default {
         this.pageDirectionDisabled = false
       }
     },
-    getBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-    }
   },
 }
 </script>
