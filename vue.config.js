@@ -1,12 +1,11 @@
 const cdn = {
     css: [
-        "//unpkg.zhimg.com/ant-design-vue@1.7.8/dist/antd.min.css"
+        "//unpkg.zhimg.com/element-ui@2.15.6/lib/theme-chalk/index.css",
     ],
     js: [
         "//unpkg.zhimg.com/vue@2.6.11/dist/vue.min.js",
-        "//unpkg.zhimg.com/ant-design-vue@1.7.8/dist/antd.min.js",
+        "//unpkg.zhimg.com/element-ui@2.15.6/lib/index.js",
         "//unpkg.zhimg.com/jspdf@2.5.0/dist/jspdf.umd.min.js",
-        "//unpkg.zhimg.com/file-saver@2.0.5/dist/FileSaver.min.js",
     ]
 }
 
@@ -25,9 +24,7 @@ module.exports = {
     configureWebpack: {
         externals: {
             vue: "Vue",
-            "ant-design-vue": "antd",
             "jspdf": "jspdf",
-            "file-saver": "saveAs",
             canvg: "canvg",
             html2canvas: "html2canvas",
             dompurify: "dompurify"
