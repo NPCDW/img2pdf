@@ -4,47 +4,53 @@
       <embed :src="pdfSrc" type="application/pdf" style="overflow: auto; width: 100%; height: 100%;"/>
     </div>
     <div style="margin: 40px;">
-      <a-upload
-          action="#"
-          list-type="picture-card"
-          accept="image/*"
-          :file-list="fileList"
-          :before-upload="beforeUpload"
-          @preview="handlePreview"
-          @change="handleChange"
-          :multiple="true"
-      >
-        <a-icon type="plus"/>
-        <div class="ant-upload-text">
-          Upload
-        </div>
-      </a-upload>
-      <a-modal v-model="previewVisible" :footer="null" :closable="false">
-        <img alt="example" style="width: 100%" :src="previewImage"/>
-      </a-modal>
+      <el-upload action="#" list-type="picture-card" :auto-upload="false" accept="image/*" :file-list="fileList"
+                 :multiple="true" :on-change="handleChange">
+          <i slot="default" class="el-icon-plus"></i>
+          <div slot="file" slot-scope="{file}">
+            <el-image fit="cover" style="width: 150px; height: 150px" :src="file.url" alt=""/>
+            <span class="el-upload-list__item-actions">
+              <span class="el-upload-list__item-left" @click="handleMove(file, 'left')">
+                <i class="el-icon-back"></i>
+              </span>
+              <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
+                <i class="el-icon-zoom-in"></i>
+              </span>
+              <span class="el-upload-list__item-delete" @click="handleRemove(file)">
+                <i class="el-icon-delete"></i>
+              </span>
+              <span class="el-upload-list__item-right" @click="handleMove(file, 'right')">
+                <i class="el-icon-right"></i>
+              </span>
+            </span>
+          </div>
+      </el-upload>
+      <el-dialog :visible.sync="previewVisible">
+        <img style="width: 100%" :src="previewImage" alt=""/>
+      </el-dialog>
       <div style="margin-top: 40px">
         <div>
           <span style="margin-right: 10px">计量单位：</span>
-          <a-radio-group v-model="unit" :disabled="unitDisabled">
-            <a-radio value="pt">points</a-radio>
-            <a-radio value="mm">mm</a-radio>
-            <a-radio value="cm">cm</a-radio>
-            <a-radio value="in">in</a-radio>
-            <a-radio value="px">px</a-radio>
-            <a-radio value="pc">pc</a-radio>
-            <a-radio value="em">em</a-radio>
-            <a-radio value="ex">ex</a-radio>
-          </a-radio-group>
+          <el-radio-group v-model="unit" :disabled="unitDisabled">
+            <el-radio label="pt">points</el-radio>
+            <el-radio label="mm">mm</el-radio>
+            <el-radio label="cm">cm</el-radio>
+            <el-radio label="in">in</el-radio>
+            <el-radio label="px">px</el-radio>
+            <el-radio label="pc">pc</el-radio>
+            <el-radio label="em">em</el-radio>
+            <el-radio label="ex">ex</el-radio>
+          </el-radio-group>
         </div>
         <div style="margin-top: 20px">
           <span style="margin-right: 10px">纸张大小：</span>
-          <a-radio-group v-model="pageSizeRadio" @change="pageSizeChange">
-            <a-radio :value="0">a4</a-radio>
-            <a-radio :value="1">b3</a-radio>
-            <a-radio :value="2">原图尺寸</a-radio>
-            <a-radio :value="3">自定义规格</a-radio>
-            <a-radio :value="4">自定义尺寸</a-radio>
-          </a-radio-group>
+          <el-radio-group v-model="pageSizeRadio" @change="pageSizeChange">
+            <el-radio :label="0">a4</el-radio>
+            <el-radio :label="1">b3</el-radio>
+            <el-radio :label="2">原图尺寸</el-radio>
+            <el-radio :label="3">自定义规格</el-radio>
+            <el-radio :label="4">自定义尺寸</el-radio>
+          </el-radio-group>
         </div>
         <div v-if="pageSizeRadio === 3" style="margin-top: 20px">
           <ul>
@@ -60,42 +66,42 @@
             <li>tabloid</li>
             <li>credit-card</li>
           </ul>
-          <a-input v-model="pageSize" style="width: 400px" placeholder="请输入上面列出来的值，如：a4、b3"/>
+          <el-input v-model="pageSize" style="width: 400px" placeholder="请输入上面列出来的值，如：a4、b3"/>
         </div>
         <div v-if="pageSizeRadio === 4" style="margin-top: 20px">
-          <a-input-number v-model="pageWidth" style="width: 200px" placeholder="如：210"/>
+          <el-input-number v-model="pageWidth" style="width: 200px" placeholder="如：210"/>
           <span> × </span>
-          <a-input-number v-model="pageHeight" style="width: 200px" placeholder="如：297"/>
+          <el-input-number v-model="pageHeight" style="width: 200px" placeholder="如：297"/>
         </div>
         <div style="margin-top: 20px">
           <div>
             <span style="margin-right: 10px">纸张方向：</span>
-            <a-radio-group v-model="pageDirection" :disabled="pageDirectionDisabled">
-              <a-radio value="portrait">纵向</a-radio>
-              <a-radio value="landscape">横向</a-radio>
-            </a-radio-group>
+            <el-radio-group v-model="pageDirection" :disabled="pageDirectionDisabled">
+              <el-radio label="portrait">纵向</el-radio>
+              <el-radio label="landscape">横向</el-radio>
+            </el-radio-group>
           </div>
         </div>
         <div style="margin-top: 20px">
           <div>
             <span style="margin-right: 10px">左右边距：</span>
-            <a-input-number v-model="x" :min="0"/>
+            <el-input-number v-model="x" :min="0"/>
           </div>
         </div>
         <div style="margin-top: 20px">
           <div>
             <span style="margin-right: 10px">上下边距：</span>
-            <a-input-number v-model="y" :min="0"/>
+            <el-input-number v-model="y" :min="0"/>
           </div>
         </div>
         <div style="margin-top: 20px">
           <div>
             <span style="margin-right: 10px">访问密码：</span>
-            <a-input style="width: 400px" v-model="password"/>
+            <el-input style="width: 400px" v-model="password"/>
           </div>
         </div>
         <div style="margin-top: 20px;">
-          <a-button type="primary" @click="convert" :loading="loading">导出PDF</a-button>
+          <el-button type="primary" @click="convert" :loading="loading">导出PDF</el-button>
         </div>
       </div>
     </div>
@@ -103,7 +109,7 @@
 </template>
 
 <script>
-import {jsPDF} from "jspdf";
+import jsPDF from "jspdf";
 
 export default {
   name: "ImgToPdf",
@@ -116,21 +122,21 @@ export default {
       unitDisabled: false,
       pageDirectionDisabled: false,
       pageSizeRadio: 0,
-      pageSize: null,
-      pageWidth: null,
-      pageHeight: null,
+      pageSize: 'a4',
+      pageWidth: 210,
+      pageHeight: 297,
       pageDirection: 'portrait',
       x: 0,
       y: 0,
       unit: 'mm',
       password: null,
-      pdfSrc: null,
+      pdfSrc: undefined,
     };
   },
   methods: {
     convert() {
       if (this.fileList.length === 0) {
-        this.$message.warn('请先上传至少一张图片')
+        this.$message.warning('请先上传至少一张图片')
         return;
       }
       this.loading = true
@@ -170,7 +176,7 @@ export default {
             height: fileTmp.height / zoom,
           })
         }
-        this.pdfSrc = doc.output("bloburi")
+        this.pdfSrc = doc.output("bloburi").toString()
         this.loading = false
       }).catch(e => {
         console.error(e)
@@ -199,20 +205,20 @@ export default {
 
           if (this.pageSizeRadio === 0) {
             file.pageSize = 'a4'
-            resolve()
+            resolve({})
           } else if (this.pageSizeRadio === 1) {
             file.pageSize = 'b3'
-            resolve()
+            resolve({})
           } else if (this.pageSizeRadio === 2) {
             file.pageSize = [image.width + (this.x * 2), image.height + (this.y * 2)]
             file.pageDirection = image.width > image.height ? 'landscape' : 'portrait'
-            resolve()
+            resolve({})
           } else if (this.pageSizeRadio === 3) {
             file.pageSize = this.pageSize
-            resolve()
+            resolve({})
           } else if (this.pageSizeRadio === 4) {
             file.pageSize = [this.pageWidth, this.pageHeight]
-            resolve()
+            resolve({})
           } else {
             reject()
           }
@@ -220,54 +226,74 @@ export default {
         image.onerror = error => reject(error);
       })
     },
-    handlePreview(file) {
+    handlePictureCardPreview(file) {
+      console.log(file)
       this.previewImage = this.getFileUrl(file);
       this.previewVisible = true;
+    },
+    handleChange(file, fileList) {
+      this.fileList = [...fileList]
+    },
+    handleRemove(file) {
+      for (let i = 0; i < this.fileList.length; i++) {
+        if (this.fileList[i].uid === file.uid) {
+          this.fileList.splice(i, 1)
+          return
+        }
+      }
+    },
+    handleMove(file, direction) {
+      let index = 0
+      for (let i = 0; i < this.fileList.length; i++) {
+        if (this.fileList[i].uid === file.uid) {
+          index = i
+          break
+        }
+      }
+      if (index === 0 && direction === 'left') {
+        this.$message.warning('已经是第一张图片了，不能再向左移动了')
+        return
+      }
+      if (index === this.fileList.length - 1 && direction === 'right') {
+        this.$message.warning('已经是最后一张图片了，不能再向右移动了')
+        return
+      }
+      let item = this.fileList[index]
+      this.fileList.splice(index, 1)
+      if (direction === 'left') {
+        this.fileList.splice(index - 1, 0, item)
+      } else {
+        this.fileList.splice(index + 1, 0, item)
+      }
     },
     getFileUrl(file) {
       let url = file.url;
       if (!file.url) {
-        if (window.createObjectURL !== undefined) {
-          url = window.createObjectURL(file.originFileObj);
-        } else if (window.URL !== undefined) {
-          url = window.URL.createObjectURL(file.originFileObj);
+        if (window.URL !== undefined) {
+          url = window.URL.createObjectURL(file.raw);
         } else if (window.webkitURL !== undefined) {
-          url = window.webkitURL.createObjectURL(file.originFileObj);
+          url = window.webkitURL.createObjectURL(file.raw);
         }
       }
       file.url = url
       return url
     },
-    beforeUpload(file) {
-      this.fileList = [...this.fileList, file];
-      return false;
-    },
-    handleChange({fileList}) {
-      this.fileList = fileList;
-    },
-    pageSizeChange() {
-      if (this.pageSizeRadio === 2) {
+  },
+  watch: {
+    pageSizeRadio(newValue, oldValue) {
+      if (newValue === 2) {
         this.unit = 'px'
         this.unitDisabled = true
         this.pageDirectionDisabled = true
-      } else {
+      } else if (oldValue === 2) {
         this.unit = 'mm'
         this.unitDisabled = false
         this.pageDirectionDisabled = false
       }
-    },
-  },
+    }
+  }
 }
 </script>
 
 <style scoped>
-.ant-upload-select-picture-card i {
-  font-size: 32px;
-  color: #999;
-}
-
-.ant-upload-select-picture-card .ant-upload-text {
-  margin-top: 8px;
-  color: #666;
-}
 </style>
