@@ -24,6 +24,7 @@ module.exports = {
     configureWebpack: {
         externals: {
             vue: "Vue",
+            "element-ui": "ELEMENT",
             "jspdf": "jspdf",
             canvg: "canvg",
             html2canvas: "html2canvas",
