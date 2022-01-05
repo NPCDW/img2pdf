@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div style="color: white;background-color: #E6A23C;text-align: center;font-size: 12px;position: absolute;top:0;width: 100%">【没有保存，就没有泄露】【本站声明，绝不会保存您的任何资源】【您现在可以断网（拔网线或开飞行模式）进行操作】</div>
+    <div style="color: white;background-color: #67C23A;text-align: center;font-size: 12px;padding:5px 0 5px 0;position: absolute;top:0;width: 100%">【没有保存，就没有泄露】【本站绝不会保存您的任何资源】【您现在可以断网（拔网线或开飞行模式）进行操作】</div>
 
     <img-to-pdf />
 
