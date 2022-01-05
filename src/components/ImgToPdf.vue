@@ -25,9 +25,11 @@
             </span>
           </div>
       </el-upload>
-      <el-dialog :visible.sync="previewVisible">
-        <img style="width: 100%" :src="previewImage" alt=""/>
-      </el-dialog>
+      <el-image-viewer
+          v-if="previewVisible"
+          :on-close="() => {this.previewVisible = false}"
+          :initialIndex="initialIndex"
+          :url-list="previewImage" />
       <div style="margin-top: 40px">
         <div>
           <span style="margin-right: 10px">计量单位：</span>
@@ -110,13 +112,14 @@
 
 <script>
 import jsPDF from "jspdf";
+import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
 
 export default {
   name: "ImgToPdf",
   data() {
     return {
       previewVisible: false,
-      previewImage: '',
+      initialIndex: 0,
       fileList: [],
       loading: false,
       unitDisabled: false,
@@ -132,6 +135,16 @@ export default {
       password: null,
       pdfSrc: undefined,
     };
+  },
+  computed: {
+    previewImage() {
+      return this.fileList.map(file => {
+        return file.url
+      })
+    }
+  },
+  components: {
+    ElImageViewer
   },
   methods: {
     convert() {
@@ -227,29 +240,18 @@ export default {
       })
     },
     handlePictureCardPreview(file) {
-      console.log(file)
-      this.previewImage = this.getFileUrl(file);
+      this.initialIndex = this.getFileIndex(file)
       this.previewVisible = true;
     },
     handleChange(file, fileList) {
       this.fileList = [...fileList]
     },
     handleRemove(file) {
-      for (let i = 0; i < this.fileList.length; i++) {
-        if (this.fileList[i].uid === file.uid) {
-          this.fileList.splice(i, 1)
-          return
-        }
-      }
+      let index = this.getFileIndex(file)
+      this.fileList.splice(index, 1)
     },
     handleMove(file, direction) {
-      let index = 0
-      for (let i = 0; i < this.fileList.length; i++) {
-        if (this.fileList[i].uid === file.uid) {
-          index = i
-          break
-        }
-      }
+      let index = this.getFileIndex(file)
       if (index === 0 && direction === 'left') {
         this.$message.warning('已经是第一张图片了，不能再向左移动了')
         return
@@ -264,6 +266,13 @@ export default {
         this.fileList.splice(index - 1, 0, item)
       } else {
         this.fileList.splice(index + 1, 0, item)
+      }
+    },
+    getFileIndex(file) {
+      for (let i = 0; i < this.fileList.length; i++) {
+        if (this.fileList[i].uid === file.uid) {
+          return i
+        }
       }
     },
     getFileUrl(file) {
