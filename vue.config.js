@@ -36,7 +36,7 @@ module.exports = {
             entry: 'src/main.js',
             template: 'public/index.html',
             filename: 'index.html',
-            title: 'PDF转图片',
+            title: '图片转PDF',
             chunks: ['chunk-vendors', 'chunk-common', 'index'],
             cdn: cdn
         }
