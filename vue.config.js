@@ -1,11 +1,15 @@
+const cdnPrefix = "//cdn.jsdelivr.net/npm/"
+// const cdnPrefix = "//unpkg.zhimg.com/"
+// const cdnPrefix = "//unpkg.com/"
+
 const cdn = {
     css: [
-        "//unpkg.zhimg.com/element-ui@2.15.6/lib/theme-chalk/index.css",
+        cdnPrefix + "element-ui@2.15.6/lib/theme-chalk/index.css",
     ],
     js: [
-        "//unpkg.zhimg.com/vue@2.6.11/dist/vue.min.js",
-        "//unpkg.zhimg.com/element-ui@2.15.6/lib/index.js",
-        "//unpkg.zhimg.com/jspdf@2.5.0/dist/jspdf.umd.min.js",
+        cdnPrefix + "vue@2.6.11/dist/vue.min.js",
+        cdnPrefix + "element-ui@2.15.6/lib/index.js",
+        cdnPrefix + "jspdf@2.5.0/dist/jspdf.umd.min.js",
     ]
 }
 
